@@ -16,7 +16,7 @@ func SetupRoute(userHandler *handler.AuthHandler, ChatHandler *handler.WebSocket
 
 	chatws := r.PathPrefix("/x").Subrouter()
 
-	chatws.HandleFunc("/ws/{group_id}/{user_id}", ChatHandler.ServeWS)
+	chatws.HandleFunc("/ws/{group_id}/{token}", ChatHandler.ServeWS)
 
 	chatM := r.PathPrefix("/chat").Subrouter()
 	chatM.Use(middleware.AuthMiddleware)
