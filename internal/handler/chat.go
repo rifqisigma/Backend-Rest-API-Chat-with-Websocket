@@ -41,14 +41,19 @@ func (h *WebSocketHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId, err := strconv.Atoi(params["user_id"])
+	token := params["token"]
 	if err != nil {
 		log.Println("Gagal parse group_id:", err)
 
 		return
 	}
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		fmt.Printf("err %v", err)
+		return
+	}
 
-	memberId, err := h.usecase.GetMemberId(uint(userId), uint(groupID))
+	memberId, err := h.usecase.GetMemberId(claims.UserID, uint(groupID))
 	if err != nil {
 		switch err {
 		case utils.ErrNotMember:

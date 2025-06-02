@@ -121,12 +121,29 @@ func (r *chatRepo) IsMemberAdmin(memberId uint) (bool, error) {
 }
 
 func (r *chatRepo) LoadGroupChat(groupId uint) ([]dto.ResponseChat, error) {
-	var chats []dto.ResponseChat
-	if err := r.db.Model(&model.Chat{}).Select("id AS chat_id,group_member_id  AS member_id, message, created_at").Where("group_id = ?", groupId).Find(&chats).Order("-created_at").Error; err != nil {
+	var chats []model.Chat
+	if err := r.db.Model(&model.Chat{}).Select("id AS chat_id,group_member_id  AS member_id, message, created_at").Preload("ChatRead").Where("group_id = ?", groupId).Find(&chats).Order("-created_at").Error; err != nil {
 		return nil, err
 	}
+	response := make([]dto.ResponseChat, 0, len(chats))
+	for _, c := range chats {
+		responseChatRead := make([]dto.StatusChatRead, len(c.ReadStatus))
+		for _, cr := range c.ReadStatus {
+			responseChatRead = append(responseChatRead, dto.StatusChatRead{
+				MemberId: cr.MemberId,
+				IsRead:   cr.IsRead,
+			})
+		}
+		response = append(response, dto.ResponseChat{
+			ID:        c.ID,
+			MemberId:  *c.GroupMemberID,
+			Message:   c.Message,
+			CreatedAt: c.CreatedAt,
+			Status:    responseChatRead,
+		})
+	}
 
-	return chats, nil
+	return response, nil
 }
 
 func (r *chatRepo) CreateChat(memberId, groupId uint, message string, status []dto.MemberStatus) (*dto.ResponseChat, error) {
