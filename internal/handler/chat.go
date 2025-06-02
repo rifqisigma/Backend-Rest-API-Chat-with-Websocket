@@ -42,11 +42,6 @@ func (h *WebSocketHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := params["token"]
-	if err != nil {
-		log.Println("Gagal parse group_id:", err)
-
-		return
-	}
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		fmt.Printf("err %v", err)
